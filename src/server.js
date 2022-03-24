@@ -38,7 +38,6 @@ function publicRooms() {
   });
   return publicRooms;
 }
-
 function countRoom(roomName) {
   return wsServer.sockets.adapter.rooms.get(roomName)?.size;
 }
@@ -66,7 +65,21 @@ wsServer.on("connection", (socket) => {
     socket.to(room).emit("new_msg", `${socket.nickname} : ${msg}`);
     done();
   });
-  socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
+  socket.on("set_nickname", (nickname, done) => {
+    socket["nickname"] = nickname;
+    done();
+  });
+  socket.on("chg_nickname", (nickname, room, done) => {
+    const preNickname = socket["nickname"];
+    socket["nickname"] = nickname;
+    socket
+      .to(room)
+      .emit(
+        "new_msg",
+        `${preNickname} changes his/her nickname to ${socket.nickname}.`
+      );
+    done();
+  });
 });
 
 httpServer.listen(3000, handleListen);

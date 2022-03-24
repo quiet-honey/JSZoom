@@ -1,11 +1,15 @@
 const socket = io();
 
+const nickname = document.querySelector("#nickname");
+const nickForm = nickname.querySelector("form");
 const welcome = document.querySelector("#welcome");
 const form = welcome.querySelector("form");
 const room = document.querySelector("#room");
 
+welcome.hidden = true;
 room.hidden = true;
 let roomName;
+let userNickname;
 
 function addMessage(message) {
   const ul = room.querySelector("ul");
@@ -20,9 +24,16 @@ function showRoom() {
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName}`;
   const msgForm = room.querySelector("#msg");
-  const nameForm = room.querySelector("#nickname");
+  const chgForm = room.querySelector("#change");
   msgForm.addEventListener("submit", handleMsgSubmit);
-  nameForm.addEventListener("submit", handleNicknameSubmit);
+  chgForm.addEventListener("submit", handleNicknameChg);
+}
+function showServer() {
+  welcome.hidden = false;
+  nickname.hidden = true;
+  alert(
+    `Your nickname is "${userNickname}"!\nWelcome to Noom, "${userNickname}"😉`
+  );
 }
 
 function handleRoomSubmit(event) {
@@ -43,11 +54,23 @@ function handleMsgSubmit(event) {
 }
 function handleNicknameSubmit(event) {
   event.preventDefault();
-  const input = room.querySelector("#nickname input");
-  socket.emit("nickname", input.value);
+  const input = nickname.querySelector("input");
+  socket.emit("set_nickname", input.value, showServer);
+  userNickname = input.value;
+  input.value = "";
+}
+function handleNicknameChg(event) {
+  event.preventDefault();
+  const input = room.querySelector("#change input");
+  userNickname = input.value;
+  socket.emit("chg_nickname", input.value, roomName, () => {
+    addMessage(`Your nickname changed to ${userNickname}.`);
+  });
+  input.value = "";
 }
 
 form.addEventListener("submit", handleRoomSubmit);
+nickForm.addEventListener("submit", handleNicknameSubmit);
 
 socket.on("welcome", (user, newCount) => {
   const h3 = room.querySelector("h3");
