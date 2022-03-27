@@ -1,0 +1,70 @@
+html,
+header {
+  padding: 18px 16px;
+}
+main {
+  padding: 18px 16px;
+}
+#welcome form {
+  width: 500px;
+  margin: auto;
+  border-radius: 10px;
+}
+#welcome input {
+  width: 300px;
+  margin: auto;
+}
+#welcome form button {
+  width: 300px;
+  max-height: 55px;
+  display: block;
+  margin: 10px 100px;
+  background-color: mediumslateblue;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  border: 3px black;
+}
+#call {
+  border-style: solid;
+  border-radius: 10px;
+}
+#call h2 {
+  text-align: center;
+}
+#myStream video#myFace {
+  margin: 20px;
+  float: left;
+}
+#myStream video#peerFace {
+  margin: 20px;
+  float: right;
+}
+#cameras {
+  margin: 8px;
+}
+#control button {
+  background-color: mediumslateblue;
+  margin: 10px;
+  border: 3px black;
+}
+#message form {
+  width: 400px;
+  margin: auto;
+  border-radius: 10px;
+}
+#message input {
+  width: 300px;
+  margin: auto;
+}
+#message form button {
+  width: 300px;
+  max-height: 55px;
+  display: block;
+  margin: 10px 50px;
+  background-color: mediumslateblue;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  border: 3px black;
+}

@@ -3,10 +3,13 @@ const socket = io();
 const myFace = document.querySelector("#myFace");
 const muteBtn = document.querySelector("#mute");
 const cameraBtn = document.querySelector("#camera");
+const hangupBtn = document.querySelector("#hangup");
 const camerasSelect = document.querySelector("#cameras");
 const call = document.querySelector("#call");
+const msg = document.querySelector("#message");
 
 call.hidden = true;
+msg.hidden = true;
 
 let myStream;
 let muted = false;
@@ -61,10 +64,10 @@ function handleMuteClick() {
     .getAudioTracks()
     .forEach((track) => (track.enabled = !track.enabled));
   if (!muted) {
-    muteBtn.innerText = "Unmute";
+    muteBtn.innerText = "Unmute🔊";
     muted = true;
   } else {
-    muteBtn.innerText = "Mute";
+    muteBtn.innerText = "Mute🔇";
     muted = false;
   }
 }
@@ -80,6 +83,13 @@ function handleCameraClick() {
     cameraOff = true;
   }
 }
+function handleHangup() {
+  socket.emit("leaveRoom", roomName);
+  myFace.srcObject = null;
+  peerFace.srcObject = null;
+  alert("You leave the room. Thank you for using Yoom!");
+  location.reload();
+}
 async function handleCameraChange() {
   await getMedia(camerasSelect.value);
   if (myPeerConnection) {
@@ -93,6 +103,7 @@ async function handleCameraChange() {
 
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
+hangupBtn.addEventListener("click", handleHangup);
 camerasSelect.addEventListener("input", handleCameraChange);
 
 //Welcome Form(입장할 방 결정)
@@ -101,6 +112,7 @@ const welcomeForm = welcome.querySelector("form");
 
 async function initCall() {
   welcome.hidden = true;
+  msg.hidden = false;
   call.hidden = false;
   await getMedia();
   makeConnection();
@@ -108,19 +120,44 @@ async function initCall() {
 
 async function handleWelcomeSubmit(event) {
   event.preventDefault();
-  const input = welcomeForm.querySelector("input");
+  const roomInput = welcomeForm.querySelector("#room input");
   await initCall();
-  socket.emit("join_room", input.value);
-  roomName = input.value;
-  input.value = "";
+  socket.emit("join_room", roomInput.value);
+  roomName = roomInput.value;
+  roomInput.value = "";
+  const h2 = call.querySelector("h2");
+  h2.innerText = `Room ${roomName}`;
 }
 
 welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
+//메시지 전송
+const msgForm = msg.querySelector("form");
+
+function addMessage(message) {
+  const ul = msg.querySelector("ul");
+  const li = document.createElement("li");
+  li.innerText = message;
+  ul.appendChild(li);
+}
+
+function handleMsgSubmit(event) {
+  event.preventDefault();
+  const input = msgForm.querySelector("input");
+  const value = input.value;
+  myDataChannel.send(value);
+  addMessage(`You :  ${value}`);
+  input.value = "";
+}
+
+msgForm.addEventListener("submit", handleMsgSubmit);
+
 //Socket Code
 socket.on("welcome", async () => {
   myDataChannel = myPeerConnection.createDataChannel("chat");
-  myDataChannel.addEventListener("message", (event) => console.log(event.data));
+  myDataChannel.addEventListener("message", (event) =>
+    addMessage(`The other person in chat room : ${event.data}`)
+  );
   console.log("made data channel");
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
@@ -132,7 +169,7 @@ socket.on("offer", async (offer) => {
   myPeerConnection.addEventListener("datachannel", (event) => {
     myDataChannel = event.channel;
     myDataChannel.addEventListener("message", (event) =>
-      console.log(event.data)
+      addMessage(`The other person in chat room : ${event.data}`)
     );
   });
   console.log("received the offer");
@@ -151,6 +188,11 @@ socket.on("answer", (answer) => {
 socket.on("ice", (ice) => {
   console.log("receive candidate");
   myPeerConnection.addIceCandidate(ice);
+});
+
+socket.on("leaveRoom", () => {
+  addMessage("The other person left the chat room😥 Please leave the room.");
+  peerFace.srcObject = null;
 });
 
 //RTC Code

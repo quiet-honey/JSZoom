@@ -38,6 +38,8 @@ wsServer.on("connection", (socket) => {
   socket.on("ice", (ice, roomName) => {
     socket.to(roomName).emit("ice", ice);
   });
+  socket.on("leaveRoom", (roomName) => {
+    socket.to(roomName).emit("leaveRoom");
+  });
 });
-
 httpServer.listen(3000, handleListen);
